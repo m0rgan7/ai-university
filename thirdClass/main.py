@@ -1,8 +1,8 @@
-from algorithms.hill_climbing import hill_climbing
-from algorithms.simulated_annealing import simulated_annealing
-from algorithms.genetic_algorithm import genetic_algorithm
-from utils.knapsack_utils import total_weight
-from utils.config import NUM_RUNS
+from thirdClass.algorithms.hill_climbing import hill_climbing
+from thirdClass.algorithms.simulated_annealing import simulated_annealing
+from thirdClass.algorithms.genetic_algorithm import genetic_algorithm
+from thirdClass.utils.knapsack_utils import total_weight
+from thirdClass.utils.config import NUM_RUNS
 import numpy as np
 
 results = {
