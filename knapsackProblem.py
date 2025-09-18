@@ -1,156 +1,156 @@
 import random
 import numpy as np
 
-itens = [
-    {"id": 1,  "valor": 60,  "peso": 10},
-    {"id": 2,  "valor": 100, "peso": 20},
-    {"id": 3,  "valor": 120, "peso": 30},
-    {"id": 4,  "valor": 90,  "peso": 15},
-    {"id": 5,  "valor": 30,  "peso": 5},
-    {"id": 6,  "valor": 70,  "peso": 12},
-    {"id": 7,  "valor": 40,  "peso": 7},
-    {"id": 8,  "valor": 160, "peso": 25},
-    {"id": 9,  "valor": 20,  "peso": 3},
-    {"id": 10, "valor": 50,  "peso": 9},
-    {"id": 11, "valor": 110, "peso": 18},
-    {"id": 12, "valor": 85,  "peso": 14},
-    {"id": 13, "valor": 95,  "peso": 16},
-    {"id": 14, "valor": 200, "peso": 28},
-    {"id": 15, "valor": 55,  "peso": 6},
+items = [
+    {"id": 1,  "value": 60,  "weight": 10},
+    {"id": 2,  "value": 100, "weight": 20},
+    {"id": 3,  "value": 120, "weight": 30},
+    {"id": 4,  "value": 90,  "weight": 15},
+    {"id": 5,  "value": 30,  "weight": 5},
+    {"id": 6,  "value": 70,  "weight": 12},
+    {"id": 7,  "value": 40,  "weight": 7},
+    {"id": 8,  "value": 160, "weight": 25},
+    {"id": 9,  "value": 20,  "weight": 3},
+    {"id": 10, "value": 50,  "weight": 9},
+    {"id": 11, "value": 110, "weight": 18},
+    {"id": 12, "value": 85,  "weight": 14},
+    {"id": 13, "value": 95,  "weight": 16},
+    {"id": 14, "value": 200, "weight": 28},
+    {"id": 15, "value": 55,  "weight": 6},
 ]
 
-CAPACIDADE_MAX = 50
+MAX_CAPACITY = 50
 
-def fitness(solucao):
-    valor_total = 0
-    peso_total = 0
-    for i, selecionado in enumerate(solucao):
-        if selecionado:
-            valor_total += itens[i]["valor"]
-            peso_total += itens[i]["peso"]
-    if peso_total > CAPACIDADE_MAX:
+def fitness(solution):
+    total_value = 0
+    total_weight = 0
+    for i, selected in enumerate(solution):
+        if selected:
+            total_value += items[i]["value"]
+            total_weight += items[i]["weight"]
+    if total_weight > MAX_CAPACITY:
         return 0
-    return valor_total
+    return total_value
 
-def peso_total(solucao):
-    return sum(itens[i]["peso"] for i in range(len(solucao)) if solucao[i])
+def total_weight(solution):
+    return sum(items[i]["weight"] for i in range(len(solution)) if solution[i])
 
-def gerar_solucao_aleatoria():
-    solucao = [random.randint(0, 1) for _ in range(len(itens))]
-    return reparar(solucao)
+def generate_random_solution():
+    solution = [random.randint(0, 1) for _ in range(len(items))]
+    return repair(solution)
 
-def reparar(solucao):
-    while peso_total(solucao) > CAPACIDADE_MAX:
-        idxs = [i for i in range(len(solucao)) if solucao[i]]
-        solucao[random.choice(idxs)] = 0
-    return solucao
+def repair(solution):
+    while total_weight(solution) > MAX_CAPACITY:
+        idxs = [i for i in range(len(solution)) if solution[i]]
+        solution[random.choice(idxs)] = 0
+    return solution
 
-def vizinhos(solucao):
-    viz = []
-    for i in range(len(solucao)):
-        vizinho = solucao[:]
-        vizinho[i] = 1 - vizinho[i]
-        viz.append(reparar(vizinho))
-    return viz
+def neighbors(solution):
+    neigh = []
+    for i in range(len(solution)):
+        neighbor = solution[:]
+        neighbor[i] = 1 - neighbor[i]
+        neigh.append(repair(neighbor))
+    return neigh
 
 def hill_climbing():
-    atual = gerar_solucao_aleatoria()
-    melhor_fitness = fitness(atual)
-    iteracoes = 0
-    while iteracoes < 300:
-        melhor_vizinho = atual
-        for v in vizinhos(atual):
-            if fitness(v) > melhor_fitness:
-                melhor_vizinho = v
-                melhor_fitness = fitness(v)
-        if melhor_vizinho == atual:
+    current = generate_random_solution()
+    best_fitness = fitness(current)
+    iterations = 0
+    while iterations < 300:
+        best_neighbor = current
+        for n in neighbors(current):
+            if fitness(n) > best_fitness:
+                best_neighbor = n
+                best_fitness = fitness(n)
+        if best_neighbor == current:
             break
-        atual = melhor_vizinho
-        iteracoes += 1
-    return atual, fitness(atual), peso_total(atual)
+        current = best_neighbor
+        iterations += 1
+    return current, fitness(current), total_weight(current)
 
 def simulated_annealing():
     T = 50.0
     Tmin = 0.1
     alpha = 0.95
-    passos_por_T = 30
+    steps_per_T = 30
 
-    atual = gerar_solucao_aleatoria()
-    melhor = atual[:]
-    melhor_valor = fitness(atual)
+    current = generate_random_solution()
+    best = current[:]
+    best_value = fitness(current)
 
     while T > Tmin:
-        for _ in range(passos_por_T):
-            vizinho = atual[:]
-            idx = random.randint(0, len(vizinho) - 1)
-            vizinho[idx] = 1 - vizinho[idx]
-            vizinho = reparar(vizinho)
+        for _ in range(steps_per_T):
+            neighbor = current[:]
+            idx = random.randint(0, len(neighbor) - 1)
+            neighbor[idx] = 1 - neighbor[idx]
+            neighbor = repair(neighbor)
 
-            delta = fitness(vizinho) - fitness(atual)
+            delta = fitness(neighbor) - fitness(current)
 
             if delta > 0 or random.uniform(0, 1) < np.exp(delta / T):
-                atual = vizinho
-                if fitness(atual) > melhor_valor:
-                    melhor = atual[:]
-                    melhor_valor = fitness(atual)
+                current = neighbor
+                if fitness(current) > best_value:
+                    best = current[:]
+                    best_value = fitness(current)
         T *= alpha
-    return melhor, fitness(melhor), peso_total(melhor)
+    return best, fitness(best), total_weight(best)
 
 def crossover(p1, p2):
-    ponto = random.randint(1, len(p1) - 1)
-    f1 = reparar(p1[:ponto] + p2[ponto:])
-    f2 = reparar(p2[:ponto] + p1[ponto:])
-    return f1, f2
+    point = random.randint(1, len(p1) - 1)
+    c1 = repair(p1[:point] + p2[point:])
+    c2 = repair(p2[:point] + p1[point:])
+    return c1, c2
 
-def mutacao(ind, p_mut=0.02):
-    mutado = ind[:]
-    for i in range(len(mutado)):
-        if random.random() < p_mut:
-            mutado[i] = 1 - mutado[i]
-    return reparar(mutado)
+def mutation(individual, mutation_prob=0.02):
+    mutated = individual[:]
+    for i in range(len(mutated)):
+        if random.random() < mutation_prob:
+            mutated[i] = 1 - mutated[i]
+    return repair(mutated)
 
-def torneio(pop, k=3):
-    candidatos = random.sample(pop, k)
-    return max(candidatos, key=fitness)
+def tournament(population, k=3):
+    candidates = random.sample(population, k)
+    return max(candidates, key=fitness)
 
-def algoritmo_genetico():
-    pop_size = 50
-    geracoes = 120
-    p_cross = 0.9
-    p_mut = 0.02
+def genetic_algorithm():
+    population_size = 50
+    generations = 120
+    crossover_prob = 0.9
+    mutation_prob = 0.02
     elite = 2
 
-    populacao = [gerar_solucao_aleatoria() for _ in range(pop_size)]
+    population = [generate_random_solution() for _ in range(population_size)]
 
-    for _ in range(geracoes):
-        nova_pop = sorted(populacao, key=fitness, reverse=True)[:elite]
-        while len(nova_pop) < pop_size:
-            p1 = torneio(populacao)
-            p2 = torneio(populacao)
-            if random.random() < p_cross:
-                f1, f2 = crossover(p1, p2)
+    for _ in range(generations):
+        new_population = sorted(population, key=fitness, reverse=True)[:elite]
+        while len(new_population) < population_size:
+            p1 = tournament(population)
+            p2 = tournament(population)
+            if random.random() < crossover_prob:
+                c1, c2 = crossover(p1, p2)
             else:
-                f1, f2 = p1, p2
-            nova_pop.append(mutacao(f1, p_mut))
-            if len(nova_pop) < pop_size:
-                nova_pop.append(mutacao(f2, p_mut))
-        populacao = nova_pop
+                c1, c2 = p1, p2
+            new_population.append(mutation(c1, mutation_prob))
+            if len(new_population) < population_size:
+                new_population.append(mutation(c2, mutation_prob))
+        population = new_population
 
-    melhor = max(populacao, key=fitness)
-    return melhor, fitness(melhor), peso_total(melhor)
+    best = max(population, key=fitness)
+    return best, fitness(best), total_weight(best)
 
-hc, valor_hc, peso_hc = hill_climbing()
-sa, valor_sa, peso_sa = simulated_annealing()
-ga, valor_ga, peso_ga = algoritmo_genetico()
+hc, hc_value, hc_weight = hill_climbing()
+sa, sa_value, sa_weight = simulated_annealing()
+ga, ga_value, ga_weight = genetic_algorithm()
 
 print("=== Hill Climbing ===")
-print("Itens:", [i+1 for i in range(len(hc)) if hc[i]])
-print("Valor:", valor_hc, "| Peso:", peso_hc)
+print("Items:", [i+1 for i in range(len(hc)) if hc[i]])
+print("Value:", hc_value, "| Weight:", hc_weight)
 
 print("\n=== Simulated Annealing ===")
-print("Itens:", [i+1 for i in range(len(sa)) if sa[i]])
-print("Valor:", valor_sa, "| Peso:", peso_sa)
+print("Items:", [i+1 for i in range(len(sa)) if sa[i]])
+print("Value:", sa_value, "| Weight:", sa_weight)
 
-print("\n=== Algoritmo Genético ===")
-print("Itens:", [i+1 for i in range(len(ga)) if ga[i]])
-print("Valor:", valor_ga, "| Peso:", peso_ga)
+print("\n=== Genetic Algorithm ===")
+print("Items:", [i+1 for i in range(len(ga)) if ga[i]])
+print("Value:", ga_value, "| Weight:", ga_weight)
